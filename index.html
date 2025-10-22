@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MeowlChipso - StealAbrainrot</title>
+  <meta name="description" content="Key gate con video de fondo y redirección al server de Roblox." />
+
+  <!-- ===== Config rápida ===== -->
+  <script>
+    window.PAGE_CONFIG = {
+      ICON_URL: "https://raw.githubusercontent.com/ZamasXmodder/ChipsoAndQueso/main/ChatGPT%20Image%2022%20oct%202025%2C%2004_15_25%20p.m..png",
+      VIDEO_URL: "https://raw.githubusercontent.com/ZamasXmodder/ChipsoAndQuesoVideo/main/Personajes_Caminando_en_Pasarela2.mp4",
+      ROBLOX_LINK: "https://www.roblox.com/share?code=2951a6a284164d438b10def7e263b8c7&type=Server"
+    };
+  </script>
+  <link rel="icon" href="https://raw.githubusercontent.com/ZamasXmodder/ChipsoAndQueso/main/ChatGPT%20Image%2022%20oct%202025%2C%2004_15_25%20p.m..png" />
+
+  <style>
+    :root{
+      --glass-stroke: rgba(255,255,255,.25);
+      --accent-1:#ff7b00; /* naranja queso */
+      --accent-2:#e11d48; /* rojo picante */
+      --txt: #f7f9ff; --muted:#b7c1da;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color:var(--txt); background:#0a0b10; overflow:hidden}
+
+    /* ===== Fondo video ===== */
+    .bg{position:fixed; inset:0; z-index:-2; filter:saturate(1.1) contrast(1.05) brightness(.9)}
+    .bg video{width:100%; height:100%; object-fit:cover}
+    .wash{position:fixed; inset:-15%; z-index:-1; pointer-events:none; mix-blend-mode:screen;
+      background:
+        radial-gradient(65% 65% at 20% 15%, rgba(255,123,0,.22), transparent 60%),
+        radial-gradient(60% 60% at 80% 85%, rgba(225,29,72,.22), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.65));
+      animation:floatWash 16s ease-in-out infinite alternate}
+    @keyframes floatWash{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(1.5%, -1.5%, 0) scale(1.05)}}
+
+    /* ===== Layout ===== */
+    .wrap{position:relative; height:100%; display:grid; place-items:center; padding:clamp(12px,2vw,28px)}
+    .console{width:min(880px,92vw); border:1px solid var(--glass-stroke); border-radius:26px; overflow:hidden;
+      background:linear-gradient(180deg, rgba(12,12,16,.66), rgba(12,12,16,.42)); backdrop-filter:blur(10px);
+      box-shadow:0 8px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset; position:relative}
+    .header{padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed rgba(255,255,255,.15); background:linear-gradient(180deg, rgba(255,255,255,.06), transparent)}
+    .brand{display:flex; gap:12px; align-items:center}
+    .logo{width:36px; height:36px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 2px rgba(255,255,255,.18), 0 0 30px rgba(255,123,0,.35)}
+    .title{font-weight:800; letter-spacing:.3px; font-size:clamp(16px,2.6vw,20px)}
+    .subtitle{color:var(--muted); font-size:12px}
+
+    .pane{padding:22px; display:grid; gap:12px}
+    .btn{appearance:none; border:0; cursor:pointer; user-select:none; padding:14px 16px; border-radius:14px; font-weight:800; letter-spacing:.2px; color:var(--txt);
+      border:1px solid rgba(255,255,255,.2); background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02));
+      display:inline-flex; align-items:center; gap:10px; transition:transform .08s ease, box-shadow .2s ease}
+    .btn:hover{transform:translateY(-1px); box-shadow:0 10px 26px rgba(0,0,0,.35)}
+    .btn:active{transform:translateY(0) scale(.98)}
+    .btn.get{border-color:rgba(255,123,0,.55); background:linear-gradient(180deg, rgba(255,123,0,.32), rgba(255,123,0,.14))}
+    .btn.copy{border-color:rgba(225,29,72,.55); background:linear-gradient(180deg, rgba(225,29,72,.28), rgba(225,29,72,.12))}
+
+   .keywrap{display:grid; gap:6px; margin-top:2px}
+   .keylabel{color:var(--muted); font-size:12px; letter-spacing:.3px}
+   .keyview{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-weight:800; font-size:15px; letter-spacing:.6px;
+     padding:12px 14px; border-radius:12px; background:rgba(255,255,255,.06); border:1px dashed rgba(255,255,255,.18);
+     user-select:none; -webkit-user-select:none; -ms-user-select:none; pointer-events:none; filter: drop-shadow(0 2px 8px rgba(0,0,0,.35))}
+   .keyview .kch{display:inline-block; transform:translateY(0)}
+
+    .toast-area{position:fixed; top:14px; right:14px; display:grid; gap:10px; z-index:30}
+    .toast{background:rgba(10,12,18,.88); border:1px solid rgba(255,255,255,.18); color:var(--txt); padding:12px 14px; border-radius:14px; min-width:220px; box-shadow:0 10px 30px rgba(0,0,0,.45); display:flex; gap:10px; align-items:center; animation:slideIn .2s ease}
+    @keyframes slideIn{from{transform:translateY(-10px); opacity:0}to{transform:translateY(0); opacity:1}}
+    .dot{width:10px; height:10px; border-radius:50%}
+    .ok{background:linear-gradient(90deg, var(--accent-1), var(--accent-2))}
+    .msg{font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="bg"><video id="bgvid" autoplay muted loop playsinline><source id="vidsrc" src="" type="video/mp4" /></video></div>
+  <div class="wash" aria-hidden="true"></div>
+  <div class="toast-area" id="toasts"></div>
+
+  <main class="wrap">
+    <section class="console">
+      <header class="header">
+        <div class="brand">
+          <img class="logo" id="logo" alt="logo" />
+          <div>
+            <div class="title">MeowlChipso - StealAbrainrot</div>
+            <div class="subtitle">Get Key → Copy Key → Auto-redirect</div>
+          </div>
+        </div>
+        <div class="subtitle">Diseño queso 🔥</div>
+      </header>
+
+      <div class="pane">
+        <button class="btn get" id="btnGet">🔐 Get Key</button>
+        <div class="keywrap">
+          <div class="keylabel">Key generada</div>
+          <div id="keyView" class="keyview" oncontextmenu="return false;" oncopy="return false;" onmousedown="return false;" onselectstart="return false;">— — —</div>
+        </div>
+        <button class="btn copy" id="btnCopy">📋 COPY KEY</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    const C = window.PAGE_CONFIG;
+    const toasts = document.getElementById('toasts');
+    const vid = document.getElementById('bgvid');
+    const vidsrc = document.getElementById('vidsrc');
+    const logo = document.getElementById('logo');
+    const keyView = document.getElementById('keyView');
+
+    // Cargar assets
+    vidsrc.src = C.VIDEO_URL; vid.load();
+    logo.src = C.ICON_URL;
+
+    // Estado de key
+    let CURRENT_KEY = null;
+
+    function generateKey(){
+      const ts = Date.now().toString(36).toUpperCase();
+      const rand = Math.random().toString(36).slice(2,6).toUpperCase();
+      return `MC-${ts}-${rand}`;
+    }
+
+    function renderKey(k){
+      if(!k){ keyView.textContent = '— — —'; return; }
+      keyView.innerHTML = k.split('').map(ch => `<span class="kch">${ch}</span>`).join('');
+    }
+
+    function toast(text){
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.innerHTML = `<span class='dot ok'></span><div class='msg'>${text}</div>`;
+      toasts.appendChild(el);
+      setTimeout(()=>{ el.style.transition='opacity .25s, transform .25s'; el.style.opacity='0'; el.style.transform='translateY(-6px)'; setTimeout(()=>el.remove(), 280); }, 2400);
+    }
+
+    async function copy(text){
+      try{ await navigator.clipboard.writeText(text); return true; }
+      catch{ const t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); return true; }
+    }
+
+    document.getElementById('btnGet').addEventListener('click', ()=>{
+      CURRENT_KEY = generateKey();
+      renderKey(CURRENT_KEY); // mostrar debajo del botón
+      toast('Key generada');
+    });
+
+    document.getElementById('btnCopy').addEventListener('click', async ()=>{
+      if(!CURRENT_KEY){ CURRENT_KEY = generateKey(); renderKey(CURRENT_KEY); }
+      const ok = await copy(CURRENT_KEY);
+      if(ok){ toast('Key copiada. Entrando…'); setTimeout(()=>{ try{ window.location.replace(C.ROBLOX_LINK);}catch{ window.location.href=C.ROBLOX_LINK;} }, 400); }
+    });
+  })();
+  </script>
+</body>
+</html>
